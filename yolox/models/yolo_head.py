@@ -17,8 +17,8 @@ from .network_blocks import BaseConv, DWConv
 
 class YOLOXHead(nn.Module):
     def __init__(
-        self, num_classes, width=1.0, strides=[8, 16, 32],
-        in_channels=[256, 512, 1024], act="silu", depthwise=False
+        self, num_classes, width=1.0, strides=[8, 16, 32, 64],
+        in_channels=[256, 512, 768, 1024], act="relu", depthwise=False
     ):
         """
         Args:
