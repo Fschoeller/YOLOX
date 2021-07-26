@@ -18,30 +18,30 @@ class Exp(BaseExp):
         super().__init__()
 
         # ---------------- model config ---------------- #
-        self.num_classes = 80
-        self.depth = 1.00
-        self.width = 1.00
+        self.num_classes = 6
+        self.depth = 0.67
+        self.width = 0.75
 
         # ---------------- dataloader config ---------------- #
         # set worker to 4 for shorter dataloader init time
         self.data_num_workers = 4
-        self.input_size = (640, 640)
+        self.input_size = (1280, 1280)
         self.random_size = (14, 26)
-        self.train_ann = "instances_train2017.json"
-        self.val_ann = "instances_val2017.json"
+        self.train_ann = "/home/fets/git/Scaled-yolo/training_set_with_external/images/all/train.json"
+        self.val_ann = "/home/fets/git/Scaled-yolo/validation_set/images/all/val.json"
 
         # --------------- transform config ----------------- #
         self.degrees = 10.0
         self.translate = 0.1
-        self.scale = (0.1, 2)
+        self.scale = (0.7, 2)
         self.mscale = (0.8, 1.6)
         self.shear = 2.0
-        self.perspective = 0.0
+        self.perspective = 0.0001
         self.enable_mixup = True
 
         # --------------  training config --------------------- #
         self.warmup_epochs = 5
-        self.max_epoch = 300
+        self.max_epoch = 100
         self.warmup_lr = 0
         self.basic_lr_per_img = 0.01 / 64.0
         self.scheduler = "yoloxwarmcos"
@@ -56,9 +56,9 @@ class Exp(BaseExp):
         self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
 
         # -----------------  testing config ------------------ #
-        self.test_size = (640, 640)
-        self.test_conf = 0.01
-        self.nmsthre = 0.65
+        self.test_size = (1280, 1280)
+        self.test_conf = 0.001
+        self.nmsthre = 0.5
 
     def get_model(self):
         from yolox.models import YOLOX, YOLOPAFPN, YOLOXHead
@@ -70,7 +70,7 @@ class Exp(BaseExp):
                     m.momentum = 0.03
 
         if getattr(self, "model", None) is None:
-            in_channels = [256, 512, 1024]
+            in_channels = [256, 512, 768, 1024]
             backbone = YOLOPAFPN(self.depth, self.width, in_channels=in_channels)
             head = YOLOXHead(self.num_classes, self.width, in_channels=in_channels)
             self.model = YOLOX(backbone, head)
@@ -90,7 +90,7 @@ class Exp(BaseExp):
         )
 
         dataset = COCODataset(
-            data_dir=None,
+            data_dir='/home/fets/git/Scaled-yolo/training_set_with_external/images/all',
             json_file=self.train_ann,
             img_size=self.input_size,
             preproc=TrainTransform(
@@ -146,7 +146,8 @@ class Exp(BaseExp):
         if rank == 0:
             size_factor = self.input_size[1] * 1. / self.input_size[0]
             size = random.randint(*self.random_size)
-            size = (int(32 * size), 32 * int(size * size_factor))
+            size = (int(64 * size), 64 * int(size * size_factor))
+   
             tensor[0] = size[0]
             tensor[1] = size[1]
 
@@ -205,7 +206,7 @@ class Exp(BaseExp):
         from yolox.data import COCODataset, ValTransform
 
         valdataset = COCODataset(
-            data_dir=None,
+            data_dir='/home/fets/git/Scaled-yolo/validation_set/images/all',
             json_file=self.val_ann if not testdev else "image_info_test-dev2017.json",
             name="val2017" if not testdev else "test2017",
             img_size=self.test_size,

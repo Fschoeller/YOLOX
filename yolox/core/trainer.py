@@ -309,6 +309,7 @@ class Trainer:
                 "start_epoch": self.epoch + 1,
                 "model": save_model.state_dict(),
                 "optimizer": self.optimizer.state_dict(),
+                "model_": save_model,
             }
             if self.amp_training:
                 # save amp state according to

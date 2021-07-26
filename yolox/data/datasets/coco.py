@@ -35,12 +35,12 @@ class COCODataset(Dataset):
             preproc: data augmentation strategy
         """
         super().__init__(img_size)
+
         if data_dir is None:
             data_dir = os.path.join(get_yolox_datadir(), "COCO")
         self.data_dir = data_dir
         self.json_file = json_file
-
-        self.coco = COCO(os.path.join(self.data_dir, "annotations", self.json_file))
+        self.coco = COCO(os.path.join(self.data_dir, self.json_file))
         self.ids = self.coco.getImgIds()
         self.class_ids = sorted(self.coco.getCatIds())
         cats = self.coco.loadCats(self.coco.getCatIds())
@@ -85,14 +85,13 @@ class COCODataset(Dataset):
 
     def pull_item(self, index):
         id_ = self.ids[index]
-
         im_ann = self.coco.loadImgs(id_)[0]
         width = im_ann["width"]
         height = im_ann["height"]
 
         # load image and preprocess
         img_file = os.path.join(
-            self.data_dir, self.name, "{:012}".format(id_) + ".jpg"
+            self.data_dir, im_ann['file_name']
         )
 
         img = cv2.imread(img_file)
